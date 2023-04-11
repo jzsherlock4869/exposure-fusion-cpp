@@ -21,6 +21,23 @@ fused output image
 
 simply run `sh run.sh` in the repo root folder to build and run the demo using the sample data from `./test_data/samples`, the results will be saved in `./test_data/result` folder.
 
+If you would like to change the parameters in the algorithm, modify the initialization function in `./exposure_fusion/src/expo_fusion.cpp`, the parameters are as follows:
+
+```c++
+void initExpoFusionConfig(ExpoFusionConfig &config){
+
+    config.pyrLevel = 10;
+
+    config.saturationIndex = 1.f;
+    config.contrastIndex = 1.f;
+    config.wellExpoIndex = 1.f;
+
+    config.contrastKernelSize = 3;
+    config.wellExpoMean = 0.5f;
+    config.wellExpoSigma = 0.2f;
+}
+```
+
 ### Authors
 
 jiazhuang (jzsherlock@163.com)
