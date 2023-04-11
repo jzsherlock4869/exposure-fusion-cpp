@@ -1,5 +1,7 @@
 #include "calc_weight.h"
 
+extern std::string rootDir;
+
 // calc well-exposedness with exponential weight
 float getExponentialWeight(float val, float mean, float sigma){
     float weight = exp(-1.f * pow(val - mean, 2) / (2.f * pow(sigma, 2)));
@@ -28,8 +30,8 @@ cv::Mat calcContrastMap(cv::Mat img, int kernelSize){
     cv::cvtColor(img, imgGray, cv::COLOR_RGB2GRAY);
     // GaussianBlur(imgGray, imgGray, cv::Size(3, 3), 0);
     cv::Laplacian(imgGray, lapMap, -1, 1);
+    lapMap = cv::abs(lapMap);
     cv::boxFilter(lapMap, conMap, -1, cv::Size(kernelSize, kernelSize), cv::Point(-1, -1), false);
-    conMap = cv::abs(conMap);
     double minV, maxV;
     cv::minMaxLoc(conMap, &minV, &maxV);
     conMap = (conMap - (float)minV) / ((float)maxV - (float)minV);
@@ -87,8 +89,33 @@ std::vector<cv::Mat> getMergeWeights(std::vector<cv::Mat> imgs, ExpoFusionConfig
     for(idx = 0; idx < weightMaps.size(); idx++){
         weightSum += weightMaps.at(idx);
     }
+
+    double minV, maxV;
+    cv::minMaxLoc(weightSum, &minV, &maxV);
+    printf("[getMergeWeights] original weightSum min %lf, max %lf \n", minV, maxV);
+
+    cv::Mat tmp_f, tmp_8u;
     for(idx = 0; idx < weightMaps.size(); idx++){
         weightMaps.at(idx) = weightMaps.at(idx) / (weightSum + 1e-8f);
+        // // visualize weight maps
+        // weightMaps.at(idx).convertTo(tmp_f, CV_32FC3, 255.f);
+        // cv::cvtColor(tmp_f, tmp_8u, cv::COLOR_GRAY2RGB);
+        // std::string dstPath = rootDir + "/weight_" + std::to_string(idx) + ".png";
+        // cv::imwrite(dstPath, tmp_8u);
+    }
+
+    // 2nd weight normalization to reduce calc error
+    for(idx = 0; idx < weightMaps.size(); idx++){
+        weightSum += weightMaps.at(idx);
+    }
+
+    for(idx = 0; idx < weightMaps.size(); idx++){
+        weightMaps.at(idx) = weightMaps.at(idx) / (weightSum);
+        // visualize weight maps
+        weightMaps.at(idx).convertTo(tmp_f, CV_32FC3, 255.f);
+        cv::cvtColor(tmp_f, tmp_8u, cv::COLOR_GRAY2RGB);
+        std::string dstPath = rootDir + "/weight_" + std::to_string(idx) + ".png";
+        cv::imwrite(dstPath, tmp_8u);
     }
 
     return weightMaps;

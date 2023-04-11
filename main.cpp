@@ -5,6 +5,13 @@
 #include "exposure_fusion/include/calc_weight.h"
 #include "exposure_fusion/include/expo_fusion.h"
 
+std::string rootDir;
+
+std::string dirnameOf(const std::string& fname){
+    size_t pos = fname.find_last_of("\\/");
+    return (std::string::npos == pos) ? "" : fname.substr(0, pos);
+}
+
 int main(int argc, char** argv)
 {
     if (argc < 3) {
@@ -15,6 +22,7 @@ int main(int argc, char** argv)
     std::vector<std::string> allPaths;
     allPaths.assign(argv + 1, argv + argc);
     printf("[main] num of exposures : %d \n", (int)allPaths.size());
+    rootDir = dirnameOf(dirnameOf(allPaths.at(0))) + "/result";
 
     std::vector<cv::Mat> images_f;
     cv::Mat tmpImg;
@@ -44,7 +52,8 @@ int main(int argc, char** argv)
     fusedImage.convertTo(fusedImage_8u, CV_8UC3, 255.f);
     cv::minMaxLoc(fusedImage_8u, &minw, &maxw);
     printf("[main] saved uint8 image max %d min %d \n", (int)maxw, (int)minw);
-    cv::imwrite("../test_data/result/fused_image.png", fusedImage_8u);
+    std::string dstPath = rootDir + "/fused_image.png";
+    cv::imwrite(dstPath, fusedImage_8u);
 
     // const std::string windowName = "fused image";
     // cv::namedWindow(windowName, cv::WINDOW_AUTOSIZE);

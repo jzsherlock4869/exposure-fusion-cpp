@@ -4,13 +4,13 @@
 
 void initExpoFusionConfig(ExpoFusionConfig &config){
 
-    config.pyrLevel = 10;
+    config.pyrLevel = 9;
 
     config.saturationIndex = 1.f;
     config.contrastIndex = 1.f;
     config.wellExpoIndex = 1.f;
 
-    config.contrastKernelSize = 3;
+    config.contrastKernelSize = 11;
     config.wellExpoMean = 0.5f;
     config.wellExpoSigma = 0.2f;
 }
@@ -31,8 +31,7 @@ cv::Mat expoFusion(std::vector<cv::Mat> images, ExpoFusionConfig config){
         // merge using gaussian pyr of weights and laplacian pyr of images
         for(int layer = 0; layer < config.pyrLevel; layer ++){
             curWeight = curWeightPyr.at(layer);
-            cv::Mat tmp3c[] = {curWeight, curWeight, curWeight};
-            cv::merge(tmp3c, 3, curWeight3c);
+            cv::cvtColor(curWeight, curWeight3c, cv::COLOR_GRAY2RGB);
             curLap = curLapPyr.at(layer);
             if (0 == i){
                 outputPyr.push_back(curWeight3c.mul(curLap));
@@ -42,7 +41,6 @@ cv::Mat expoFusion(std::vector<cv::Mat> images, ExpoFusionConfig config){
             }
             double minw, maxw;
             cv::minMaxLoc(outputPyr.at(layer), &minw, &maxw);
-            // cv::minMaxLoc(curLap, &minw, &maxw);
             printf("[expoFusion] imgIdx=%d, layerIdx=%d, size=%dx%d, min=%lf, max=%lf \n", i, layer, outputPyr.at(layer).rows, outputPyr.at(layer).cols, minw, maxw);
         }
         printf("[expoFusion] the %dth image fused. \n", i);
