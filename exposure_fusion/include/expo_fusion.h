@@ -14,6 +14,8 @@ typedef struct ExpoFusionConfig{
     int contrastKernelSize;
     float wellExpoMean;
     float wellExpoSigma;
+    float whitePercent;
+    float blackPercent;
 } ExpoFusionConfig;
 
 void initExpoFusionConfig(ExpoFusionConfig &config);

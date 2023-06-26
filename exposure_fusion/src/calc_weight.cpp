@@ -85,7 +85,7 @@ std::vector<cv::Mat> getMergeWeights(std::vector<cv::Mat> imgs, ExpoFusionConfig
         tmpW = calcWeightMap(img, satuIdx, conIdx, wellIdx, kernelSize, mean, sigma);
         weightMaps.push_back(tmpW);
     }
-    cv::Mat weightSum(cv::Size(tmpW.cols, tmpW.rows), CV_32FC1);
+    cv::Mat weightSum(cv::Size(tmpW.cols, tmpW.rows), CV_32FC1, cv::Scalar(0));
     for(idx = 0; idx < weightMaps.size(); idx++){
         weightSum += weightMaps.at(idx);
     }
@@ -120,3 +120,56 @@ std::vector<cv::Mat> getMergeWeights(std::vector<cv::Mat> imgs, ExpoFusionConfig
 
     return weightMaps;
 }
+
+cv::Mat robustNorm(cv::Mat img, float whitePercent, float blackPercent){
+    
+    // ref. to An Implementation of the Exposure Fusion Algorithm, Charles Hessel
+    // Section 5: Clipping and Robust Normalization
+    // https://www.ipol.im/pub/art/2018/230/article_lr.pdf
+    
+    std::vector<cv::Mat> rgb;
+    cv::split(img, rgb);
+
+    cv::Mat minChannel, maxChannel;
+    minChannel = cv::min(rgb.at(0), rgb.at(1));
+    minChannel = cv::min(minChannel, rgb.at(2));
+    maxChannel = cv::max(rgb.at(0), rgb.at(1));
+    maxChannel = cv::max(minChannel, rgb.at(2));
+
+    int maxNum = int(whitePercent * img.cols * img.rows);
+    int minNum = int(blackPercent * img.cols * img.rows);
+    maxNum = std::max(1, maxNum);
+    minNum = std::max(1, minNum);
+    printf("[robustNorm] clip minNum : %d, maxNum : %d \n", minNum, maxNum);
+
+    std::vector<float> pixelValues(img.begin<float>(), img.end<float>());
+    std::vector<float> maxValues(maxNum);
+    std::vector<float> minValues(minNum);
+
+    std::partial_sort_copy(pixelValues.begin(), pixelValues.end(),
+                           maxValues.begin(), maxValues.end(), std::greater<float>());
+    std::partial_sort_copy(pixelValues.begin(), pixelValues.end(),
+                           minValues.begin(), minValues.end());
+    std::nth_element(maxValues.begin(), maxValues.begin() + (maxNum - 1), maxValues.end(), std::greater<int>());
+    std::nth_element(minValues.begin(), minValues.begin() + (minNum - 1), minValues.end());
+
+    float clip_max = maxValues.back();
+    float clip_min = minValues.front();
+    printf("[robustNorm] clip min : %f, clip max %f \n", clip_min, clip_max);
+
+    cv::Mat normImg = (img - cv::Scalar::all(clip_min)) / (clip_max - clip_min);
+
+    double minw, maxw;
+    cv::minMaxLoc(normImg, &minw, &maxw);
+    printf("[main] normImg image size: %d %d, min: %f, max: %f \n", normImg.rows, normImg.cols, (float)minw, (float)maxw);
+
+    cv::threshold(normImg, normImg, 1.0, 1.0, cv::THRESH_TRUNC);
+    cv::threshold(-normImg, normImg, 0.0, 0.0, cv::THRESH_TRUNC);
+    normImg = - normImg;
+
+    cv::minMaxLoc(normImg, &minw, &maxw);
+    printf("[robustNorm] thres normImg image size: %d %d, min: %f, max: %f \n", normImg.rows, normImg.cols, (float)minw, (float)maxw);
+
+    return normImg;
+}
+

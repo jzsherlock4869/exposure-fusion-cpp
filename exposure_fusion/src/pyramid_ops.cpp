@@ -10,8 +10,11 @@ std::vector<cv::Mat> buildGaussianPyr(cv::Mat src, int numLevel){
     pyr.push_back(src);
     cv::Mat curIn, curOut;
     curIn = src;
+    int new_cols, new_rows;
     for(int level = 1; level < numLevel; level++){
-        cv::pyrDown(curIn, curOut, cv::Size(curIn.cols / 2, curIn.rows / 2));
+        new_cols = round(curIn.cols / 2.0);
+        new_rows = round(curIn.rows / 2.0);
+        cv::pyrDown(curIn, curOut, cv::Size(new_cols, new_rows));
         pyr.push_back(curOut);
         curIn = curOut;
     }
@@ -23,8 +26,11 @@ std::vector<cv::Mat> buildLaplacianPyr(cv::Mat src, int numLevel){
     std::vector<cv::Mat> pyr;
     cv::Mat curIn, curOut, curUp;
     curIn = src;
+    int new_cols, new_rows;
     for(int level = 0; level < numLevel - 1; level++){
-        cv::pyrDown(curIn, curOut, cv::Size(curIn.cols / 2, curIn.rows / 2));
+        new_cols = round(curIn.cols / 2.0);
+        new_rows = round(curIn.rows / 2.0);
+        cv::pyrDown(curIn, curOut, cv::Size(new_cols, new_rows));
         cv::pyrUp(curOut, curUp, cv::Size(curIn.cols, curIn.rows));
         pyr.push_back(curIn - curUp);
         curIn = curOut;

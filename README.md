@@ -35,12 +35,16 @@ void initExpoFusionConfig(ExpoFusionConfig &config){
     config.contrastKernelSize = 3;
     config.wellExpoMean = 0.5f;
     config.wellExpoSigma = 0.2f;
+
+    config.whitePercent = 0.01;
+    config.blackPercent = 0.005;
+
 }
 ```
 
 ### Authors
 
-jiazhuang (jzsherlock@163.com)
+jia zhuang (jzsherlock@163.com)
 
 ### Reference
 

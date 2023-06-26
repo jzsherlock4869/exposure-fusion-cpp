@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <vector>
+#include <algorithm>
 #include "exposure_fusion/include/pyramid_ops.h"
 #include "exposure_fusion/include/calc_weight.h"
 #include "exposure_fusion/include/expo_fusion.h"
@@ -41,6 +42,15 @@ int main(int argc, char** argv)
 
     ExpoFusionConfig config;
     initExpoFusionConfig(config);
+
+    // constraint pyramid level to be <= max level log2(min(h, w))
+    float min_len = std::min(float(images_f.at(0).cols), float(images_f.at(0).rows));
+    int maxPyrLevel = floor(log2(min_len));
+    if(maxPyrLevel < config.pyrLevel){
+        printf("[main] maxPyrLevel %d < config.PyrLevel %d, set to max \n",
+                        maxPyrLevel, config.pyrLevel);
+        config.pyrLevel = maxPyrLevel;
+    }
 
     cv::Mat fusedImage = expoFusion(images_f, config);
     double minw, maxw;

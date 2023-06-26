@@ -13,5 +13,6 @@ cv::Mat calcContrastMap(cv::Mat img, int kernelSize);
 cv::Mat calcWellExpoMap(cv::Mat img, float mean, float sigma);
 cv::Mat calcWeightMap(cv::Mat img, float satuIdx, float conIdx, float wellIdx, int kernelSize, float mean, float sigma);
 std::vector<cv::Mat> getMergeWeights(std::vector<cv::Mat> imgs, ExpoFusionConfig config);
+cv::Mat robustNorm(cv::Mat img, float whitePercent, float blackPercent);
 
 #endif

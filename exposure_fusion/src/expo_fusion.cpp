@@ -13,6 +13,10 @@ void initExpoFusionConfig(ExpoFusionConfig &config){
     config.contrastKernelSize = 11;
     config.wellExpoMean = 0.5f;
     config.wellExpoSigma = 0.2f;
+
+    config.whitePercent = 0.01;
+    config.blackPercent = 0.005;
+
 }
 
 cv::Mat expoFusion(std::vector<cv::Mat> images, ExpoFusionConfig config){
@@ -48,5 +52,6 @@ cv::Mat expoFusion(std::vector<cv::Mat> images, ExpoFusionConfig config){
     printf("[expoFusion] fusion completed, start collapsing ... \n");
     // collapse merged laplacian pyrs to form fusion image
     cv::Mat outputImage = collapseLaplacianPyr(outputPyr);
+    outputImage = robustNorm(outputImage, config.whitePercent, config.blackPercent);
     return outputImage;
     }
