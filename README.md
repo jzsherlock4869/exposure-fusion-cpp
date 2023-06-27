@@ -59,4 +59,14 @@ jia zhuang (jzsherlock@163.com)
   year={2009},
   organization={Wiley Online Library}
 }
+
+@article{hessel2018implementation,
+  title={An implementation of the exposure fusion algorithm},
+  author={Hessel, Charles},
+  journal={Image Processing On Line},
+  volume={8},
+  pages={369--387},
+  year={2018}
+}
+
 ```
